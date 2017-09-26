@@ -1,0 +1,305 @@
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.analysis.core.StopAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
+
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+//import java.util.stream;
+import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import org.apache.commons.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+//import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
+//import java.io.File;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+//import org.jdom2.*;
+//import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+
+
+
+/**
+
+ * Index all text files under a directory.
+
+ * <p>
+
+ * This is a command-line application demonstrating simple Lucene indexing. Run
+
+ * it with no command-line arguments for usage information.
+
+ */
+
+public class indexComparision {
+
+
+	// Defining the constructor
+	private indexComparision() {
+
+	}
+	/** Index all text files under a directory. */
+
+	public static void main(String[] args) {
+
+		//ArrayList<HashMap<String, String>> documents = new ArrayList();
+
+		String indexPath = "C:\\Users\\bhada\\Downloads\\IU_Sem3\\Ind_cmp";
+		String docPath = "C:\\Users\\bhada\\Downloads\\IU_Sem3\\Search\\Assignments\\Data\\corpus";
+		final Path docDir = Paths.get(docPath);
+		System.out.println("docDir" + docDir);
+
+		try {
+
+			System.out.println("Indexing to directory '" + indexPath + "'...");
+			System.out.println("check");
+
+
+
+			Directory dir = FSDirectory.open(Paths.get(indexPath));
+
+			// here we have use standard analyzer
+			Analyzer analyzer = new StopAnalyzer();
+
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+
+
+
+			iwc.setOpenMode(OpenMode.CREATE);
+			
+
+
+
+			IndexWriter writer = new IndexWriter(dir, iwc);
+			System.out.println("check1");
+			
+			
+			File folder = new File("C:\\Users\\bhada\\Downloads\\IU_Sem3\\Search\\Assignments\\Data\\corpus");
+			File[] listOfFiles = folder.listFiles();
+			//System.out.println(listOfFiles);
+			ArrayList<HashMap<String, String>> documents = new ArrayList();
+
+			for (int i = 0; i < listOfFiles.length; i++) {
+			  File file = listOfFiles[i];
+			  
+			  System.out.println(file);
+			  if (file.isFile() && file.getName().endsWith(".trectext")) {
+			    //@SuppressWarnings("deprecation")
+					String TEXTupdate = "";
+
+				HashMap<String, String> document = new HashMap<String, String>(); 
+//				String content = FileUtils.readFileToString(file,"");
+
+				try {
+		    	  //File file = listOfFiles[0];
+					
+					List<InputStream> streams = Arrays.asList(
+							new ByteArrayInputStream("<ROOT>".getBytes()),
+							new FileInputStream(file),
+							new ByteArrayInputStream("</ROOT>".getBytes())
+							);
+				
+				  InputStream is = new SequenceInputStream(Collections.enumeration(streams));
+				  String theString = IOUtils.toString(is,"UTF-8");
+		          String pattern = "&\\s";
+		          theString = theString.replaceAll(pattern, "&amp;");
+		          InputStream ist = new ByteArrayInputStream(theString.getBytes(StandardCharsets.UTF_8.name()));
+		          //ist.read();
+		          DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+
+		          DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+		          org.w3c.dom.Document doc = dBuilder.parse(ist);
+
+		          NodeList nList = doc.getElementsByTagName("TEXT");
+
+		          		          		          		          
+		          for (int temp = 0; temp < nList.getLength(); temp++) {
+		             Node nNode = nList.item(temp);
+
+		             //System.out.println("\nCurrent Element :" + nNode.getNodeName());
+		             
+		             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+		                Element eElement = (Element) nNode;
+		                TEXTupdate = TEXTupdate + eElement.getTextContent();
+		                //System.out.println(eElement.getTextContent());		                
+		             }
+		          }
+		          //byte[] b = TEXTupdate.getBytes("utf-8");
+		          //System.out.println(b);
+//		          if (b <= 32766) {
+	        	  document.put("TEXT",TEXTupdate); 
+//		          }
+		          
+				
+		        //System.out.println("---------DOCNO-----------------");
+//		          for (int temp = 0; temp < nList1.getLength(); temp++) {
+//			             Node nNode1 = nList1.item(temp);
+//
+//			             //System.out.println("\nCurrent Element :" + nNode1.getNodeName());
+//			             
+//			             if (nNode1.getNodeType() == Node.ELEMENT_NODE) {
+//			                Element eElement = (Element) nNode1;
+//			                DOCNOupdate = DOCNOupdate + eElement.getTextContent();
+//			                
+//			                //System.out.println(eElement.getTextContent());			               			                
+//			             }
+//			          }
+//		          document.put("DOCNO",DOCNOupdate);
+//		          //System.out.println(DOCNOupdate);
+//		        //System.out.println("---------BYLINE-----------------");
+//		          for (int temp = 0; temp < nList2.getLength(); temp++) {
+//			             Node nNode2 = nList2.item(temp);
+//
+//			             //System.out.println("\nCurrent Element :" + nNode2.getNodeName());
+//			             
+//			             if (nNode2.getNodeType() == Node.ELEMENT_NODE) {
+//			                Element eElement = (Element) nNode2;
+//			                BYLINEupdate = BYLINEupdate + eElement.getTextContent();
+//			                //System.out.println(eElement.getTextContent());
+//			               			                
+//			             }
+//			          }
+//		          document.put("BYLINE",BYLINEupdate);
+//		        //System.out.println("---------DATELINE-----------------");
+//		          for (int temp = 0; temp < nList3.getLength(); temp++) {
+//			             Node nNode3 = nList3.item(temp);
+//
+//			             //System.out.println("\nCurrent Element :" + nNode3.getNodeName());
+//			             
+//			             if (nNode3.getNodeType() == Node.ELEMENT_NODE) {
+//			                Element eElement = (Element) nNode3;
+//			                DATELINEupdate = DATELINEupdate + eElement.getTextContent();
+//			                //System.out.println(eElement.getTextContent());
+//			                			                
+//			             }
+//			          }
+//		          document.put("DATELINE",DATELINEupdate);
+//		        //System.out.println("---------HEAD-----------------");
+//		          for (int temp = 0; temp < nList4.getLength(); temp++) {
+//			             Node nNode4 = nList4.item(temp);
+//
+//			             //System.out.println("\nCurrent Element :" + nNode4.getNodeName());
+//			             
+//			             if (nNode4.getNodeType() == Node.ELEMENT_NODE) {
+//			                Element eElement = (Element) nNode4;
+//			                HEADupdate = HEADupdate + eElement.getTextContent();
+//			                //System.out.println(eElement.getTextContent());
+//			               			                
+//			             }
+//			          }
+//		          document.put("HEAD",HEADupdate);
+		       } catch (Exception e) {
+		    	   e.printStackTrace();
+		    	   System.out.println("Check_error");
+		       }
+				//System.out.println("checkdude");
+				documents.add(document);
+			  }		  		
+	}
+
+			for (HashMap<String, String> document : documents) {
+				System.out.println("check_print");
+				indexDoc(writer, document);
+			}
+			writer.forceMerge(1);
+			writer.commit();
+			writer.close();
+			
+			IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+			//Print the total number of documents in the corpus
+			System.out.println("Total number of documents in the corpus: "+reader.maxDoc());
+			//Print the number of documents containing the term "new" in <field>TEXT</field>.
+			System.out.println("Number of documents containing the term \"new\" for field \"TEXT\": "+reader.docFreq(new Term("TEXT", "new")));
+			//Print the total number of occurrences of the term "new" across all documents for <field>TEXT</field>.
+			System.out.println("Number of occurrences of \"new\" in the field \"TEXT\": "+reader.totalTermFreq(new Term("TEXT","new")));
+			Terms vocabulary = MultiFields.getTerms(reader, "TEXT");
+			//Print the size of the vocabulary for <field>TEXT</field>, applicable when the index has only one segment.
+			System.out.println("Size of the vocabulary for this field: "+vocabulary.size());
+			//Print the total number of documents that have at least one term for <field>TEXT</field>
+			System.out.println("Number of documents that have at least one term for this field: "+vocabulary.getDocCount());
+			//Print the total number of tokens for <field>TEXT</field>
+			System.out.println("Number of tokens for this field: "+vocabulary.getSumTotalTermFreq());
+			//Print the total number of postings for <field>TEXT</field>
+			System.out.println("Number of postings for this field: "+vocabulary.getSumDocFreq());
+			//Print the vocabulary for <field>TEXT</field>
+			TermsEnum iterator = vocabulary.iterator();
+			BytesRef byteRef = null;
+			System.out.println("\n*******Vocabulary-Start**********");
+			while((byteRef = iterator.next()) != null) {
+				String term = byteRef.utf8ToString();
+				//System.out.print(term+"\t");
+				}
+			System.out.println("\n*******Vocabulary-End**********");
+			reader.close();
+
+			System.out.println("Done ...");
+
+		} catch (IOException e) {
+
+			System.out.println(" caught a " + e.getClass()
+
+					+ "\n with message: " + e.getMessage());
+
+		}
+
+	}
+
+	/** Indexes a single document 
+
+	 * @throws IOException */
+
+	static void indexDoc(IndexWriter writer, HashMap<String, String> document) throws IOException {
+		// make a new, empty document
+		System.out.println("check_indexdoc");
+		Document lDoc = new Document();
+		//lDoc.add(new StringField("DOCNO", document.get("DOCNO"),
+		//		Field.Store.YES));
+		System.out.println("check_indexdoc_1");
+
+
+		lDoc.add(new TextField("TEXT", document.get("TEXT"), Field.Store.NO));
+		System.out.println("check_indexdoc_2");
+		writer.addDocument(lDoc);
+		System.out.println("check_indexdoc_3");
+
+	}
+
+}

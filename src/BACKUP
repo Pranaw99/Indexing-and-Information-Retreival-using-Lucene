@@ -1,0 +1,352 @@
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+
+
+
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+//import java.util.stream;
+import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import org.apache.commons.io.*;
+import java.io.File;
+import java.io.FileReader;
+//import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+//import java.io.File;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+//import org.jdom2.*;
+//import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+
+
+
+/**
+
+ * Index all text files under a directory.
+
+ * <p>
+
+ * This is a command-line application demonstrating simple Lucene indexing. Run
+
+ * it with no command-line arguments for usage information.
+
+ */
+
+public class generateIndex {
+
+
+
+	private generateIndex() {
+
+	}
+
+
+
+	/** Index all text files under a directory. */
+
+	public static void main(String[] args) {
+
+		//ArrayList<HashMap<String, String>> documents = new ArrayList();
+
+		String indexPath = "C:\\Users\\bhada\\Downloads\\IU_Sem3\\Search\\Assignments";
+		String docPath = "C:\\Users\\bhada\\Downloads\\IU_Sem3\\Search\\corpus";
+		final Path docDir = Paths.get(docPath);
+		System.out.println("docDir" + docDir);
+
+		try {
+
+			System.out.println("Indexing to directory '" + indexPath + "'...");
+			System.out.println("check");
+
+
+
+			Directory dir = FSDirectory.open(Paths.get(indexPath));
+
+			// here we have use standard analyzer
+			Analyzer analyzer = new StandardAnalyzer();
+
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+
+
+
+			iwc.setOpenMode(OpenMode.CREATE);
+			
+
+
+
+			IndexWriter writer = new IndexWriter(dir, iwc);
+			System.out.println("check1");
+			
+			
+			File folder = new File("C:\\Users\\bhada\\Downloads\\IU_Sem3\\Search\\corpus");
+			File[] listOfFiles = folder.listFiles();
+			//System.out.println(listOfFiles);
+			ArrayList<HashMap<String, String>> documents = new ArrayList();
+
+			//ArrayList<String> txtContent = new ArrayList();
+			//ArrayList<String> txtContent = new ArrayList();
+			//listOfFiles.length
+			for (int i = 0; i < 7; i++) {
+			  File file = listOfFiles[i];
+			  //System.out.println(i);
+			  if (file.isFile() && file.getName().endsWith(".trectext")) {
+			    //@SuppressWarnings("deprecation")
+					String TEXTupdate = "";
+					String HEADupdate = "";
+					String DOCNOupdate = "";
+					String BYLINEupdate = "";
+					String DATELINEupdate = "";
+				HashMap<String, String> document = new HashMap<String, String>(); 
+				String content = FileUtils.readFileToString(file,"UTF-8");
+				/**if (i == 0) {
+					System.out.println(content);
+				}**/
+			    //System.out.println(content);
+//				try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//				    String line;
+//				    while ((line = br.readLine()) != null) {
+//				    	//System.out.println("Reading line");
+//				    	//System.out.println(line);
+//				    	//if (line.equals("<TEXT>")){
+//				    		//System.out.println("dude");
+//				    	//}
+//				    	if (line.equals("<TEXT>")) {
+//				    		while (!line.equals("</TEXT>")) {
+//				    			TEXTupdate = TEXTupdate+ line;
+//				    			//System.out.println("checkbro");
+//				    			//System.out.println("checktext");
+//				    			line = br.readLine();
+//				    			//if (i == 0) {
+//									//System.out.println(line);
+//								//}				    			
+//				    		}
+//				    		//System.out.println("checkdude");
+//				    		document.put("TEXT",TEXTupdate);
+//				    		//document.put("TEXT",textupdate);
+//				    	}
+//				    	//System.out.println("checking");
+//		    			//if (i == 0) {
+//							//System.out.println(line);
+//						//}	
+//				    	//System.out.println("checkdude");
+//				    	else if (line.length() > 5 && (line.substring(0, 6)).equals("<HEAD>")) {
+//				    		//System.out.println("JAA RAHA HAI");
+//				    		HEADupdate = HEADupdate + line;
+//					    	//System.out.println("dude1" + HEADupdate);
+//					    	document.put("HEAD", HEADupdate);
+//					    }
+//				    	else if (line.length() > 6 && line.substring(0,7).equals("<DOCNO>")) {
+//				    		DOCNOupdate = DOCNOupdate + line;
+//				    		document.put("DOCNO",DOCNOupdate);
+//					    	//System.out.println("dude2");
+//					    	//document.put("DOCNO", line);
+//					    }
+//				    	else if (line.length() > 7 && line.substring(0,8).equals("<BYLINE>")) {
+//				    		BYLINEupdate = BYLINEupdate + line;
+//				    		document.put("BYLINE",BYLINEupdate);
+//					    	//System.out.println("dude3");
+//					    	//document.put("BYLINE", line);
+//					    }
+//				    	else if (line.length() > 9 && line.substring(0,10).equals("<DATELINE>")) {
+//				    		DATELINEupdate = DATELINEupdate + line;
+//				    		document.put("DATELINE",DATELINEupdate);
+//					    	//System.out.println("dude4");
+//					    	//document.put("DATELINE", line);
+//					    }
+//				    	// System.out.println(line);
+//				       // process the line.
+//					    //System.out.println(document);
+//				    	}
+//				    //System.out.println(document);
+//				    System.out.println("yaha pahoncha");
+//				    //System.out.println(HEADupdate);   
+//				    
+//				    documents.add(document);
+//				    Map<String, String> reversedMap = new TreeMap<String, String>(document);
+//
+//				  //then you just access the reversedMap however you like...
+//				    for (Map.Entry entry : reversedMap.entrySet()) {
+//				    	System.out.println("yaha pahoncha ki nahi");
+//				    	if (entry.getKey().equals("HEAD")) {
+//				    		//System.out.println(entry.getKey());
+//				    		//System.out.println(entry.getValue());
+//				    		//System.out.println("yaha pahonch hi gaya hoga");
+//				    		//System.out.println(entry.getKey() + ", " + entry.getValue());
+//				    	}
+//				      //System.out.println(entry.getKey() + ", " + entry.getValue());
+//				  	}
+//				    //System.out.println(documents);
+//				    }
+//				
+//				}
+			   
+			    
+			    
+			    
+			    
+			    //String content = FileUtils.content(file);
+			    /* do something with content */
+//			  } 
+			//System.out.println(documents);
+			
+				try {
+		    	  //File file = listOfFiles[0];
+
+		          DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+
+		          DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+		          org.w3c.dom.Document doc = dBuilder.parse(file);
+
+		          NodeList nList = doc.getElementsByTagName("TEXT");
+		          NodeList nList1 = doc.getElementsByTagName("DOCNO");
+		          NodeList nList2 = doc.getElementsByTagName("BYLINE");
+		          NodeList nList3 = doc.getElementsByTagName("DATELINE");
+		          NodeList nList4 = doc.getElementsByTagName("HEAD");
+		          
+		          //System.out.println("---------TEXT-----------------");
+		          System.out.println(nList.getLength());
+		          		          		          		          
+		          for (int temp = 0; temp < nList.getLength(); temp++) {
+		             Node nNode = nList.item(temp);
+
+		             //System.out.println("\nCurrent Element :" + nNode.getNodeName());
+		             
+		             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+		                Element eElement = (Element) nNode;
+		                TEXTupdate = TEXTupdate + eElement.getTextContent();
+		                //System.out.println(eElement.getTextContent());		                
+		             }
+		          }
+		          document.put("TEXT",TEXTupdate);
+		        //System.out.println("---------DOCNO-----------------");
+		          for (int temp = 0; temp < nList1.getLength(); temp++) {
+			             Node nNode1 = nList1.item(temp);
+
+			             //System.out.println("\nCurrent Element :" + nNode1.getNodeName());
+			             
+			             if (nNode1.getNodeType() == Node.ELEMENT_NODE) {
+			                Element eElement = (Element) nNode1;
+			                DOCNOupdate = DOCNOupdate + eElement.getTextContent();
+			                
+			                //System.out.println(eElement.getTextContent());			               			                
+			             }
+			          }
+		          document.put("DOCNO",DOCNOupdate);
+		          //System.out.println(DOCNOupdate);
+		        //System.out.println("---------BYLINE-----------------");
+		          for (int temp = 0; temp < nList2.getLength(); temp++) {
+			             Node nNode2 = nList2.item(temp);
+
+			             //System.out.println("\nCurrent Element :" + nNode2.getNodeName());
+			             
+			             if (nNode2.getNodeType() == Node.ELEMENT_NODE) {
+			                Element eElement = (Element) nNode2;
+			                BYLINEupdate = BYLINEupdate + eElement.getTextContent();
+			                //System.out.println(eElement.getTextContent());
+			               			                
+			             }
+			          }
+		          document.put("BYLINE",BYLINEupdate);
+		        //System.out.println("---------DATELINE-----------------");
+		          for (int temp = 0; temp < nList3.getLength(); temp++) {
+			             Node nNode3 = nList3.item(temp);
+
+			             //System.out.println("\nCurrent Element :" + nNode3.getNodeName());
+			             
+			             if (nNode3.getNodeType() == Node.ELEMENT_NODE) {
+			                Element eElement = (Element) nNode3;
+			                DATELINEupdate = DATELINEupdate + eElement.getTextContent();
+			                //System.out.println(eElement.getTextContent());
+			                			                
+			             }
+			          }
+		          document.put("DATELINE",DATELINEupdate);
+		        //System.out.println("---------HEAD-----------------");
+		          for (int temp = 0; temp < nList4.getLength(); temp++) {
+			             Node nNode4 = nList4.item(temp);
+
+			             //System.out.println("\nCurrent Element :" + nNode4.getNodeName());
+			             
+			             if (nNode4.getNodeType() == Node.ELEMENT_NODE) {
+			                Element eElement = (Element) nNode4;
+			                HEADupdate = HEADupdate + eElement.getTextContent();
+			                //System.out.println(eElement.getTextContent());
+			               			                
+			             }
+			          }
+		          document.put("HEAD",HEADupdate);
+		       } catch (Exception e) {
+		          //e.printStackTrace();
+		    	   System.out.println("Check_error");
+		       }
+				documents.add(document);
+		}
+			  		
+	}
+
+			for (HashMap<String, String> document : documents) {
+
+				indexDoc(writer, document);
+			}
+
+			writer.close();
+
+			System.out.println("Done ...");
+
+		} catch (IOException e) {
+
+			System.out.println(" caught a " + e.getClass()
+
+					+ "\n with message: " + e.getMessage());
+
+		}
+
+	}
+
+	/** Indexes a single document 
+
+	 * @throws IOException */
+
+	static void indexDoc(IndexWriter writer, HashMap<String, String> document) throws IOException {
+
+		// make a new, empty document
+
+		Document lDoc = new Document();
+
+
+
+		lDoc.add(new StringField("DOCNO", document.get("DOCNO"),
+
+				Field.Store.YES));
+
+
+
+		lDoc.add(new TextField("TEXT", document.get("TEXT"), Field.Store.NO));
+
+		writer.addDocument(lDoc);
+
+	}
+
+}
